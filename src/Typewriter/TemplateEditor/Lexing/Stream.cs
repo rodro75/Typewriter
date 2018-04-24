@@ -1,12 +1,13 @@
 using System;
 using System.Text;
+using Typewriter.VisualStudio;
 
 namespace Typewriter.TemplateEditor.Lexing
 {
     internal class Stream
     {
         private readonly int offset;
-        private readonly string template;
+        private string template;
         private int position = -1;
         private char current = char.MinValue;
 
@@ -151,6 +152,19 @@ namespace Typewriter.TemplateEditor.Lexing
             }
 
             return position < template.Length;
+        }
+
+        public bool ReplaceBlock(int length, string content)
+        {
+            if (position + length > template.Length)
+                return false;
+
+            string before = template.Substring(0, position);
+            string after = template.Substring(position + length);
+            template = String.Concat(before, content, after);
+            position--;
+            current = position > -1 ? template[position] : char.MinValue;
+            return true;
         }
     }
 }

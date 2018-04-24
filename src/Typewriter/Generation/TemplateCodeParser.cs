@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using EnvDTE;
+using Typewriter.Generation.Controllers;
 using Typewriter.TemplateEditor.Lexing;
 using Typewriter.TemplateEditor.Lexing.Roslyn;
+using Typewriter.VisualStudio;
+using Stream = Typewriter.TemplateEditor.Lexing.Stream;
 
 namespace Typewriter.Generation
 {
@@ -17,7 +21,7 @@ namespace Typewriter.Generation
         public static string Parse(ProjectItem projectItem, string template, List<Type> extensions)
         {
             if (string.IsNullOrWhiteSpace(template)) return null;
-
+            
             var output = string.Empty;
             var stream = new Stream(template);
             var shadowClass = new ShadowClass();
@@ -27,6 +31,7 @@ namespace Typewriter.Generation
 
             while (stream.Advance())
             {
+                if (ParseInclude(stream, projectItem)) continue;
                 if (ParseCodeBlock(stream, shadowClass)) continue;
                 if (ParseLambda(stream, shadowClass, contexts, ref output)) continue;
                 output += stream.Current;
@@ -60,6 +65,36 @@ namespace Typewriter.Generation
             }
 
             return types;
+        }
+
+        private static bool ParseInclude(Stream stream, ProjectItem projectItem)
+        {
+            if (stream.Current == '$')
+            {
+                var identifier = stream.PeekWord(1);
+                if (identifier == "Include")
+                {
+                    var path = stream.PeekBlock(identifier.Length + 2, '(', ')');
+                    if (path != null)
+                    {
+                        try
+                        {
+                            var absPath = Path.IsPathRooted(path)
+                                ? path
+                                : Path.Combine(Path.GetDirectoryName(projectItem.Path()) ?? "", path);
+
+                            var content = File.ReadAllText(absPath);
+                            return stream.ReplaceBlock(identifier.Length + 3 + path.Length, content);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error("Include Error: " + ex);
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
 
         private static bool ParseCodeBlock(Stream stream, ShadowClass shadowClass)
