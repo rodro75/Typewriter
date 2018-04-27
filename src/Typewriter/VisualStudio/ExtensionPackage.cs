@@ -23,6 +23,7 @@ namespace Typewriter.VisualStudio
     [InstalledProductRegistration("#110", "#112", "1.18.0", IconResourceID = 401)]
     [ProvideLanguageService(typeof(LanguageService), Constants.LanguageName, 100, DefaultToInsertSpaces = true)]
     [ProvideLanguageExtension(typeof(LanguageService), Constants.TemplateExtension)]
+    [ProvideLanguageExtension(typeof(LanguageService), Constants.TemplatePartialExtension)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
     public sealed class ExtensionPackage : Package, IDisposable
     {

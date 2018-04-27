@@ -6,7 +6,9 @@ namespace Typewriter
     internal static class Constants
     {
         internal const string TemplateExtension = ".tst";
+        internal const string TemplatePartialExtension = ".tstp";
         internal const string ContentType = "tst";
+        internal const string PartialContentType = "tstp";
         internal const string LanguageName = "TST";
 
         internal const string CsExtension = ".cs";
